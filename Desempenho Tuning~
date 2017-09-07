@@ -1,0 +1,585 @@
+Coleta de Informações do hardware:
+
+Comandos:
+
+- sudo dmidecode
+- sudo cat/proc/cpuinfo
+- cat/proc/meminfo
+- lspci, lsusb, lshal
+- fdisk -l
+- df -h
+- cat/etc/Isb-release ou cat/etc/redhat-release
+- uname -a
+- sudo hdparm -i /dev/sda -> Ajuda as configurações do Disco;
+
+Verificar o que causou o desempenho do servidor... Verificar quais foram as manutenções, aplicações, atualizações, mudança na estrutura de redes, verificar o hadware, verificar o tempo de uso dele como servidor etc.
+
+Antes de meter a mão no servidor para buscar o problema, procure saber se a bios está atualizada, drivers estão atualizados etc. ou seja, se o hadware está atualizado. Caso não estejam, atualizem tudo! E se após atualizar e continuar o problema, comece a meter a mão na massa em busca do problema.
+
+Antes de fazer qualquer alteração no servidor ou nos user... Tipo, colocar um novo software, ou atualizar o SO, ou rede etc... Faça o levantamento de tudo da maquina, como ela estava antes, seu desempenho etc. Antes de aplicar alguma alteração no servidor... Em cima tem as técnicas de "Coleta de Informações do hardware".
+
+System time: Tempo gasto pela CPU em tarefas relacionadas ao kenel, valores altos e sustentados aqui podem apontar gargalos na rede e na pilha de driver. Um sistema deverá gastar o mínimo possível no kenel time.
+
+Ferramentas para acompanhar o desempenho do servidor:
+
+TOP <- Verfiique o 0.0%sy (system time), 0.0%us (user) 0.0%wa (waiting) ou o vmstat 1 100
+{
+user -> uso pelo usuario.
+system time -> O uso do sistema.
+wa -> O uso do I/O no sistema. // Um sistema não deve esperar muito tempo com  operações de I/O. Entretanto você deverá investigar o desempenho do subsistema de I/O correpondente.
+id ->  Descreve a porcentagem de CPU esperando por tarefas.
+}
+
+FREE -> verificação de memorias.
+cat /proc/meminfo -> mesma ferramenta, porém detalhada.
+
+verificar no ifconfig "colisões"... Se tiver colisões, tem que arrumar, pois da mal desempenho no sistema.
+
+Caso tenha alguma colisão o comando -> "ethtool eth0" irá te mostrar as configurações... Caso esteja em "haf duplex" = Duplex: haf, faça a mudança para Full = Duplex: Full. Para concertar o problema. (problema no swith ou linux). Isso na rede.
+
+___________________________________________
+Para parar algum serviços no sistema: faça... "rcconf" : e escolha as opções que quer desativar ou ativar (melhor estudar todas).
+
+COMANDOS PARA CPU:
+vmstat
+top
+htop
+ps
+ulimit
+
+* PROVIDOS VIA APLICATIVO SYSSTAT
+mpstat
+iostat
+sar
+/pro/cpuinfo
+
+GRAVANDO PROCESSOS DE ANÁLISE PARA ANALISAR TAREFAS DO HARDWARE:
+top -d 2 ( 2 segundos que ele vai atualizar) -n 5 (5 quantas vezes ele vai processar "rodar")
+
+SE QUISER ACOMPANHAR O PROCESSO DE APENAS UMA "APLICAÇÃO" COLOCA O PID DO PROCESSO ASSIM:
+Ex: top -p 4690
+__________________________________________
+PRIORIDADE: Quanto menor for o NI (renice), mais negativo ele for, melhor é o desempenho. Ou seja, aumenta a prioridade.
+Link de ajuda... http://www.vivaolinux.com.br/dica/Aumentando-(bastante)-o-desempenho-dos-processos
+
+                  Comando valor PID
+Exemplo do comando: renice -19  1298 (Melhor)
+Ou ................ renice +19  1298 (Pior)
+__________________________________________
+USAR O COMANDO "taskset" PARA ASSOCIAR PROCESSOS AS CPU'S PARA GARANTIR QUE OS PROCESSOS NÃO FIQUEM PULANDO ENTRE OS PROCESSADORES CAUSANDO DESCARGAS DE CACHE... EXEMPLO DE COMO MUDAR A APLICAÇÃO ENTRE OS PROCESSADORES... QUANDO DIGITAR E EXECUTAR O COMANDO "tor" SELECIONA O NUMERO 1 E VEJA QUANTOS PROCESSADORES TEM RODANDO... FAÇA "taskset -pc 1 1298" <- Está dizendo... Passe a aplicação 1298 (PID) para o processador 1 (%Cpu1). Para ter um melhor desempenho.
+PARA SABER AONDE A APLICAÇÃO ESTÁ RODANDO NO MOMENTO FAÇA: "taskset -p 1298"
+
+Como matar um processo (utilize o top para isso): pega o PID do processo e faça: kill [PID] ... Para forçar o cancelamento do processo faça: kill -9 [PID]
+
+Se caso você não conseguir matar um processo, pode ter certeza que tem algum que precisa matar antes para que possa matar este.
+__________________________________________
+COMPILADORES FAZ DIFERENÇA NO DESEMPENHO... SITE PARA BAIXAR COMPILADORES->
+https://software.intel.com/en-us/intel-compilers
+INSTALANDO UMA APLICAÇÃO DA INTEL COM O COMPILADOR DA PROPRIA EMPRESA... O DESEMPENHO AUMENTA MUITO, EM TORNO DE UNS 40%.
+__________________________________________
+Gargalos na memoria:
+slabtop - mostra a quantidade memoria cach e o consumo dela.
+verificando no free -lto : verifique a quantidade swap sendo usada... Dependendo da quantidade... Saberemos que possa ser alguma aplicação, e com isso o servidor começará a ficar muito lento.
+
+free -c 5 - Atualizará 5x o "free" exibindo os resultados. Ou utilize "watch -n 1 free" para acompanhar em tempo real o uso da memoria.
+
+Caso no uso da sua maquina, mostrar muito uso do swap, e após reiniciar o sistema ainda apresentar uso... Faça o seguinte comando para limpar a swap: "sudo swapoff -a" e depois "sudo swapon -a".
+(Se haver muito uso da swap no servidor... Isso indica problemas, e pode deixar a maquina muito lenta".
+_________________________________________
+Paginação -> https://pt.wikipedia.org/wiki/Mem%C3%B3ria_paginada ...
+A paginação pode deixar o desempenho do servidor muito ruim, o que deixa o hadware muito lento... Para resolver este problema, procure aumentar o numero de memoria do seu hadware.
+
+... É importante monitorar o uso de disco do hadware... Se tiver um grande numero de uso do disco, pode causar gargalos no sistema de I/O e lentidão no hardware... Comando para ver o uso de disco: "df -h".
+hdparm -I /dev/sda - Mostra todas as caracteristicas do seu Disco.
+Obs: hdparm : help de todos os comandos.
+
+Quanto mais segurança você coloca na maquina, pior fica o desemepenho.
+
+# Enviando informações do sistema, caso ocorra algo para meu email... Configurando o SMNP no linux: Configurando o agente:
+
+hugo@hugo-X450CA:~$ snmpconf
+
+The following installed configuration files were found:
+
+   1:  /etc/snmp/snmp.conf
+   2:  /etc/snmp/snmpd.conf
+   3:  /etc/snmp/snmptrapd.conf
+
+Would you like me to read them in?  Their content will be merged with the
+output files created by this session.
+
+Valid answer examples: "all", "none","3","1,2,5"
+
+Read in which (default = all): [enter]
+
+I can create the following types of configuration files for you.
+Select the file type you wish to create:
+(you can create more than one as you run this program)
+
+   1:  snmptrapd.conf
+   2:  snmpd.conf
+   3:  snmp.conf
+
+Other options: quit
+
+Select File: 2
+
+The configuration information which can be put into snmpd.conf is divided
+into sections.  Select a configuration section for snmpd.conf
+that you wish to create:
+
+   1:  Agent Operating Mode
+   2:  Extending the Agent
+   3:  Trap Destinations
+   4:  Monitor Various Aspects of the Running Host
+   5:  System Information Setup
+   6:  Access Control Setup
+
+Other options: finished
+
+Select section: 5
+
+Section: System Information Setup
+Description:
+  This section defines some of the information reported in
+  the "system" mib group in the mibII tree.
+
+Select from:
+
+   1:  The [typically physical] location of the system.
+   2:  The contact information for the administrator
+   3:  The proper value for the sysServices object.
+
+Other options: finished, list
+
+Select section: 1
+
+Configuring: syslocation
+Description:
+  The [typically physical] location of the system.
+    Note that setting this value here means that when trying to
+    perform an snmp SET operation to the sysLocation.0 variable will make
+    the agent return the "notWritable" error code.  IE, including
+    this token in the snmpd.conf file will disable write access to
+    the variable.
+    arguments:  location_string
+
+The location of the system: VM Hugo   
+
+Finished Output: syslocation  "VM Hugo"
+
+Section: System Information Setup
+Description:
+  This section defines some of the information reported in
+  the "system" mib group in the mibII tree.
+
+Select from:
+
+   1:  The [typically physical] location of the system.
+   2:  The contact information for the administrator
+   3:  The proper value for the sysServices object.
+
+Other options: finished, list
+
+Select section: 2
+
+Configuring: syscontact
+Description:
+  The contact information for the administrator
+    Note that setting this value here means that when trying to
+    perform an snmp SET operation to the sysContact.0 variable will make
+    the agent return the "notWritable" error code.  IE, including
+    this token in the snmpd.conf file will disable write access to
+    the variable.
+    arguments:  contact_string
+
+The contact information: Hugo Vidal <huggorviddal64@hotmail.com>
+
+Finished Output: syscontact  "Hugo Vidal <huggorviddal64@hotmail.com>"
+
+Section: System Information Setup
+Description:
+  This section defines some of the information reported in
+  the "system" mib group in the mibII tree.
+
+Select from:
+
+   1:  The [typically physical] location of the system.
+   2:  The contact information for the administrator
+   3:  The proper value for the sysServices object.
+
+Other options: finished, list
+
+Select section: finished
+
+The configuration information which can be put into snmpd.conf is divided
+into sections.  Select a configuration section for snmpd.conf
+that you wish to create:
+
+   1:  Agent Operating Mode
+   2:  Extending the Agent
+   3:  Trap Destinations
+   4:  Monitor Various Aspects of the Running Host
+   5:  System Information Setup
+   6:  Access Control Setup
+
+Other options: finished
+
+Select section: finished
+
+I can create the following types of configuration files for you.
+Select the file type you wish to create:
+(you can create more than one as you run this program)
+
+   1:  snmptrapd.conf
+   2:  snmpd.conf
+   3:  snmp.conf
+
+Other options: quit
+
+Select File: quit
+
+
+The following files were created:
+
+  snmpd.conf  
+
+These files should be moved to /usr/share/snmp if you
+want them used by everyone on the system.  In the future, if you add 
+the -i option to the command line I'll copy them there automatically for you.
+
+Or, if you want them for your personal use only, copy them to
+/home/hugo/.snmp .  In the future, if you add the -p option to the
+command line I'll copy them there automatically for you.
+
+hugo@hugo-X450CA:~$ service snmpd restart
+
+root@hugo-X450CA:/home/hugo# cd /etc/snmp/
+root@hugo-X450CA:/etc/snmp# ls
+snmp.conf  snmpd.conf  snmptrapd.conf
+root@hugo-X450CA:/etc/snmp# cat snmpd.conf
+
+{ alterar:
+sysLocation    Sitting on the Dock of the Bay
+sysContact     Me <me@example.org>
+} 
+{ Para:
+sysLocation    VM Hugo
+sysContact     Hugo Vidal <huggorviddal64@hotmail.com>
+}
+{ s : para inserção.
+  esc -> ctrl + O -> esc -> :wq! [enter] : Salvar e sair.
+}
+
+root@hugo-X450CA:/etc/snmp# service snmpd restart
+root@hugo-X450CA:/etc/snmp# snmpwalk -v2c localhost -c public
+
+___________________________________________________________________________________
+TRAP: "Mensagens de erros"
+
+sysDescr - Descrição do sistema;
+sysLocation - Localização física do sistema;
+sysContact - Pessoa responsável pelo sistema;
+sysName - Nome do sistema.
+___________________________________________________________________________________
+Estudar o zabbix
+___________________________________________________________________________________
+É preciso deixar os drives sempre atualizados!
+____________________________________________________________________
+Thread é uma unidade de execução gerada em um único processo. Esta roda em paralelo com outras threads em um mesmo processo. Elas podem compartilhar os mesmos recursos tais como memória. Espaço de enderaçamento, arquivo abertos e outros. Elas podem compartilhar o mesmo conjunto de dados de uma aplicação. Uma thread [e também chamada de LWP - Light Weight Process.
+
+Existe dois tipos de prioridades no linux: Dinâmica e Estática.
+
+* Prioridade: define a ordem na qual o processo é tratado pela CPU;
+* Prioridade Dinâmica e Estática.
+
+	- Dinâmica: O kenel muda seu comportamento baseado em uma heurística que utiliza o comportamento do processo e suas características
+
+	- Estática: O usuário pode mudar a prioridade estática indiretamente através do uso do comando nice:
+
+* 19 (menor nível de prioridade) a -20 (maior nível de prioridade).
+* 0 -> Valor padrão.
+
+* Muita troca de contexto é indesejável porque o processador tem que descarregar seus registros e cache toda vez que precisa criar um ambiente para um novo processo. Isso não é bom! ... Um drive mal escrito, ou algum modulo do kernel pode causar troca de contexto!
+
+Com bastante memoria e um disco de estado solido (ssd) ... O desempenho é muito grande!!
+
+Quanto mais cache na maquina, melhor o desempenho!
+
+Para ter um bom desempenho utilize SO de 64x (64 bits) em maquina de 64x e de 32x (32 bits) em maquinas de 32x.
+________________________________________________________________________
+NÃO-JOURNALING:
+
+* Um sistema de arquivos não-jornaling, quando uma escrita é executada no sistema de arquivos o kernel faz as modificações no metadados primeiro e então faz a escrita dos dados do usuário como próximo passo;
+
+* Esta operação, algumas vezes, causa grandes chances de perda na integridade dos dados;
+
+* Se um sitema "cai" por alguma razão enquanto uma operação de escrita no metadados está em andamento, a consistência do sistema de arquivos fica "quebrada".
+
+* Só fsck para consertat isso. E se o sistema de arquivos for grande?
+
+- Varre o disco realizando uma conferência entre os dados informados nas estruturas (inodes, group descriptor e inode table) e a real situação encontrada no volume.
+
+JOURNALING:
+
+* Resolve o problema escrevendo os dados modificados em uma área denominada "journal" - (diário de bordo);
+
+* Pode estar junto do filesystem ou fora do filesystem;
+
+* Ele poderá incluir as mudanças do metadados e os dados se suportados;
+
+O Journaling impata no desempenho!
+
+* Porque o journaling escreve antes nos journal logs para então escrever os dados usuários isso poderá causar uma penalização de desempenho em relação aos sistemas não-journaling;
+
+* Segurança dos daods x desempenho;
+
+Ext3 ou Ext4 suporta três diferentes modos de trabalhos do journaling. São eles:
+
+* Journal: grava todas as mudanças em sistema de arquivos.
+
+* Ordered: grava somente mudanças em arquivos metadata (arquivos que guardam informações sobre outros arquivos), mas guarda as atualizações no arquivo de dados antes de fazer as mudanças associadas ao sistema de arquivos.
+
+* Writeback: também só grava mudanças para o sistema de arquivo em metadata, mas utiliza o processo de escrita do sistema de arquivos em uso para gravação. É o mais rápido journaling ext3, mas o menos confiável.
+
+
+# dumpe2fs /dev/sda2 |more (vai informar tudo dessa partição)
+
+- Colocando o Journaling no disco ou partição:
+# tune2fs -j /dev/sda2
+
+- Para verificar o tipo que esta no seu disco ou partição faça:
+# cat /proc/mounts (e veja a linha: "/dev/sda2 /home ext4 rw,relatime,data=ordered 0 0" (na "data=ordered", sabemos que o tipo é ordered (padrão)))
+
+- Para alterar utilize:
+-- Desmonta primeiro:
+# umount /dev/sda2/ (se der erro tire o / da frente do sda2)
+-- Agora monta com o novo tipo:
+# mount /dev/sda2 -o data=journal
+
+* Testando o desempenho com os tipos de journaling:
+# time dd if=/dev/zero of=/sda2/teste.dat bs=1M count=1500
+
+-- Apagando arquivo criado para teste:
+# rm /sda2/teste.dat
+
+Melhorando o desempenho na área de journal:
+
+Estudar cada filesystem que existe no linux.
+
+__________________________________________________________________
+Análise de desempenho em disco utilizando o Iozone:
+- 
+# iozone -a -i 0 -b sainda.xls 
+(fazendo o teste de escrita e reescrita em disco e jogando em um arquivo .xls (excel).
+Obs: os numeros que mostraram, serão segundos!
+- Após terminar, abra o arquivo excel e selecione a parte que será para a análise e exiba em um gráfico.
+- Quanto menor o tempo, melhor.
+- Quanto maior o tempo, pior.
+- Testar a ferramenta em sistema dos tipos de filesystem, raid etc.
+Análise completa:
+# iozone -a
+
+- Análise para uso de CPU:
+# iozone -a -i 0 -+u
+__________________________________________________________________
+Análise de desempenho em rede no linux:
+
+- Para análise de pacote e caminho na rede utilize:
+# mtr 8.8.8.8 (8.8.8.8 (ou www.google.com) ip do servidor google, ele exibirá o numero de pacotes e utilização da rede até o site do google)
+
+# ethtool -S eth0 (Mostra supostos erros na rede)
+
+# sar -n DEv 1 100 (verifica a taxa de dados recebido ou enviado na rede)
+
+- Quanto mais conexão estiver na rede, mais memoria e cpu e mais recursos tomará da rede.
+
+- É importante esta observando a rede:
+
+  * Transferencia de dados, valor de pico, qual a média
+  * Quantidade de transações
+  * Latencia
+  * Frequencia de conexão estabelcidade
+
+Em um socket temos: IP + Porta + Protocolo (TCP / UDP)
+
+Firewall Utiliza ---> Memoria porque ele é um socket
+E utiliza CPU para processar os socket
+
+__________________________________________________
+NetPiPe é uma ferramente de teste de fluxo tcp que vai enviar vários pacotes de diversos tamanhos diz quanto é quantos Mbits por segundo e faz a média de latencia desses pacotes.
+
+Como prosseguir:
+
+- Obs: é importante deixar claro que é preciso fazer a instação deste mesmo nas maquinas que quere fazer a análise, assim também na própria maquina que vai fazer a análise. Porém durante a análise mostrarei como será feita em ambas maquinas.
+
+1º Fazer a instalação:
+#  wget http://bitspjoule.org/netpipe/code/NetPIPE-3.7.2.tar.gz
+
+2º Da um ls para verificar se o arquivo foi baixado:
+# ls
+
+3º Descompacta o arquivo:
+# tar zxvf NetPIPE-3.7.2.tar.gz
+
+4º Abra o arquivo:
+# cd NetPIPE-3.7.2
+
+5º
+# make tcp
+#ls
+
+6º Execute o arquivo (subindo o NPtpc, execute ele apenas na maquina que será feita a análise! Na maquina que visiualizará e coletará os dados da análise faça comforme mostra na 7º):
+# ./NPtcp (fazendo isso na maquina que tem o ip 192.168.1.68)
+
+7º # ./NPtcp -h 192.168.1.68
+
+- Agora vamos gerar o gráfico da análise:
+Copia o resultado gerado (somente os "Mbps in" e o "usec") e cola no excel. Primeiramente seleciona todo o "Mbps" e cola, e depois o "usec" e cola ao lado direto do Mbps, pois será feito o gráfico dos Mbps de acordo com o usec.
+
+- Obs: Há um problema! O gráfico não será gerado por conta dos "." ! O que faremos é:
+
+1º Seleciona toda a coluna de numeração;
+2º Clica em "Editar" -> "Editar e substituir" -> Procurar por "." e substituir por "," e clica em "OK".
+3º Agora é formatar, vá em "Formatar" -> "Celulas" -> Escolha a opção: "Formato" coloque: -1234,12 / "Casa decimais" coloque: 3. E prontoo!! Agora da para gerar o gráfico !! (Lembre-se coloque as casas decimais de acordo com os resultados gerado no terminal! Por isso! Fique atento se estão iguais!).
+
+- A cada tuning vai fazendo os gráficos e comparando.
+____________________________________________________________________________________
+O NFS (Network File System) é um sistema de arquivos distribuídos desenvolvido inicialmente pela Sun Microsystems, Inc., a fim de compartilhar arquivos e diretórios entre computadores conectados em rede, formando assim um diretório virtual. 
+
+Este tutorial ensina a instalar e configurar o NFS  no Ubuntu 12.04.
+
+No servidor
+Instale o serviço com o seguinte comando:
+
+- Instalando o nfs (caso não tenha)
+# sudo apt-get install nfs-kernel-server
+
+1º Primeiramente é preciso criar o diretorio:
+# mkdir /dados (pode escolher outro local, e outro nome)
+
+2º (Opcional) Caso não tenha nada dentro dele pode mover alguns arquivo para ele com o seguinte comando:
+# mv /home/hugo/Downloads/imagem1.jpg /home/hugo/Downloads/imagem2.jpg /home/hugo/Downloads/texto1 /dados
+(movendo os arquivos "imagem1.jpg, imagem2.jpg, texto1" da pasta "Downloads" para o diretorio /dados)
+
+3º Abra o arquivo /etc/exports:
+# vim /etc/exports
+
+4º E escreva o seguinte no arquivo: (Isso permite que qualquer um na rede pode escrita e leitura pois o ip: "192.168.1.0/24" quer dizer todos na rede pode montar esse diretorio")
+
+/dados/ 192.168.1.0/24(rw,no_root_squash,sync)
+~                                                                               
+~                                                                               
+~                                                                               
+~
+
+4º Edite o arquivo /etc/hosts.deny ou (denny) e adicione as seguintes linhas para negar o acesso remoto ao NFS a todos os hosts:
+
+portmap: ALL
+lockd: ALL
+mountd: ALL
+rquotad: ALL
+statd: ALL
+
+5º Agora libere o acesso remoto ao NFS para hosts específicos.
+
+Se você quer compartilhar o diretório “/dados” com todos os hosts pertencentes a faixa de rede 192.168.1.0/24 (na qual também está o servidor NFS), edite o arquivo /etc/hosts.allow e informe as linhas abaixo. Se você quer compartilhar apenas com um ou dois computadores da rede, substitua 192.168.1.0/24 pelos endereços IP separando-os por vírgula. Ex.: portmap: 192.168.1.10, 192.168.1.11.
+
+portmap: 192.168.1.0/24
+lockd: 192.168.1.0/24
+rquotad 192.168.1.0/24
+mountd: 192.168.1.0/24
+statd: 192.168.1.0/24
+
+6º Execute o comando abaixo para ativar o serviço e habilitar as configurações.
+
+# sudo /etc/init.d/nfs-kernel-server start
+
+7º Instale o cliente NFS.
+
+# sudo apt-get install nfs-common
+
+- Crie o diretório que receberá os arquivos compartilhados pelo servidor.
+
+# sudo mkdir /dados
+
+- Monte o diretório compartilhado pelo servidor NFS no host cliente.
+# mount -t nfs 192.168.1.68:/dados /dados
+Onde 192.168.1.68 é o ip do servidor nfs.
+
+Edite o arquivo /etc/fstab e adicione a seguinte linha ao final. Isso fará com que a montagem do diretório remoto seja executada automaticamente quando o computador for ligado.
+
+192.168.1.68:/dados /dados nfs defaults 0 0
+Onde 192.168.1.68 é o ip do servidor nfs.
+
+ Não é ideal utilizar em uma lan pois pode gerar muitos gargalos e mal desempenho no nfs também... O ideal é utilizar em uma rede local (cabo de rede) que terá um bom desempenho.
+(Se for preciso, reinicie a maquina e pronto! Porém... Gera gargalos!!)
+- Obs: o disco e o sistema de I/O pode ter influencia no mal desempenho do nfs.
+
+- O nfs por padrão exibi 8 processos para ser utilizado pelas maquinas (dando um "# ps aux |grep nfsd" é possivel ver a quantidade atual)... Se tiver um grande numero de maquinas utilizando o serviço nfs pode gerar problemas na rede e grandes gargalos... Para diminuir os gargalos e melhorar o desempenho pode aumentar o numero de processos.
+
+- Para aumentar o desempenho na velocidade e de envios em maiores quantidades dados altere o bloco de dados "rsize" e/ou "wsize" da seguinte forma:
+
+- Verifique o tamanho atual com o seguinte comando: # cat /proc/mounts (no cliente)
+- Na montagem que foi configurado a pasta de nfs vai estar lá em baixo algo como:
+
+192.168.1.68:/dados /dados nfs4 rw,relatime,vers=4.0,rsize=524288,wsize=524288,namlen=255,hard,proto=tcp,
+port=0,time=600,retrans=2,sec=sys,clientaddr=192.168.1.10,local_lock=none,addr=192.168.1.68 0 0
+
+(Isso exibe as configurações atual do nfs do cliente! Não esqueça, isso que estamos fazendo agora é no cliente!, essa configurações é do cliente e não do servidor)
+
+Desmonta a pasta primeiramente:
+# umount /dados
+
+- monta novamente, porém com uma alteração dessa vez
+
+# mount -o noatime,wsize=65636,rsize=65536 -t nfs 192.168.1.68:/dados /dados
+(é limitado apenas a 64k (64000)
+
+- Abre o fstab da seguinte forma:
+# vim /etc/fstab
+
+- Vai até as configurações feita de montagem da pasta nfs e altere a seguinte linha:
+192.168.1.68:/dados /dados nfs defaults 0 0
+- Para:
+192.168.1.68:/dados /dados nfs noatime,wsize=65636,rsize=65636,defaults 0 0
+
+- Salva e sai... 
+
+- Monta novamente a pasta:
+# mount /dados
+
+Para testa o desempenho se piorou ou melhorou faça:
+dd if=/dev/zero of=/dados/teste.dat bs=1024 count=100000 (dentro da pasta "dados" que criamos do nfs)
+
+(Estudar sobre LDAP Tuning)
+(Estudar sobre SAMPA Server tuning)
+_____________________________________________________________________________________________________________________
+Application Performance:
+
+Principais problemas de desempenho na aplicação:
+Complexidade dos algoritmos;
+Muito códigos de loop gera gargalos nos programas;
+Gambiarras gera gargalos;
+______________________________________________________________________________________________________________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

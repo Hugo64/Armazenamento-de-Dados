@@ -1,0 +1,106 @@
+SERIAL:
+Rede, Sata, USB são transmitidos por bit, um após o outros.
+
+PARALELA:
+Em uma transmissão pararela, mais de um bit é enviado por vez.
+Essa transmissão é medida em Bytes por segundo (bps).
+
+Exemplos: Barramentos internos, como os que transmitem informações entre memória e processador.
+_______________________________________________________________________________________________
+
+TAXA DE TRASMISSÃO:
+A taxa de transmissão é medida multiplicando-se a quantidade de bits (que podem ser enviados de uma vez) pelo clock.
+
+O clock por sua vez é um sinal de controle que indica com que frequeência os bits podem ser enviados.
+
+A frequência é medida em "ciclos por segundo" e a sua unidade é o Hertz (Hz).
+
+Hoje o clock do processador não deve ser a única informação usada para determinar o seu desempenho, já que outras caracteristicas como a quantidade de memória cache e a quantidade de núcleos também influem cada vez mais no desmepenho do computador.
+_______________________________________________________________________________________________
+I/O:
+Interface de comunicação para entrada e saida de dados.
+_______________________________________________________________________________________________
+
+Tipo de Disco Rigido PATA : Os antigos que usavam conectores de disco rigido IDE. Conector -> flat Cable.
+
+os flat cable maior ou igual os de 80 vias são os melhores para utilizar o maximo de recursos como, taxa de tranmissão de dados do HD.
+
+Tipo de Disco Rigido SATA : Mais rápido que o PATA, desempenho melhor que o PATA, compatível com tecnologia hot swapping.
+Podem ser tirado e posto sem precisar desligar o servidor, ou pc, porém somente aqueles que não possui o sistema principal, tipo; o que tem o SO.
+
+RPM - Rotações Por Minuto... Isso que faz a diferença em um disco
+rigido, pois dai defini-se o quanto ele transfere os dados.
+
+Cabos sata:
+
+SATA Revisão 1.0 - 1.5Gbps
+SATA Revisão 2.0 - 3.0Gbps
+SATA Revisão 3.0 - 6.0Gbps
+
+Obs: Isso depende da placa mãe e HD também, se aceita essa quantidade de tranferencia ! ;-)
+_______________________________________________________________________________________________
+MEMORIAS:
+
+Memoria ROM: como o nome implica, é o tipo de memória que não pode ser modificada.
+Neste caso, o fabricante escreve as informações no chip de memória. O software escrito para uma ROM é chamada de firmware.
+A BIOS (Basci Input-Output System)  fica armazenada em uma ROM.
+ 
+Memoria RAM: Random Acess Memory - Memoria volátil que pode ser alterada.
+Quando a memoria ram está cheia, ela virtualiza uma memoria no HD, quando é retornado uma aplicação no qual está no hd, ela substitui por alguma aplicação que não está sendo usada na memoria ram por aquela que está sendo pega do HD para ser executada pela cpu.
+
+Resumindo: A cpu sempre vai buscar arquivos que estão sendo executado na memoria cache, se não encontrar ele busca na memoria ram, e se não encontrar ele busca em disco.
+Obs: Isso é um grande problema de desempenho!! Deixa a maquina muito lenta! Neste caso, o ideal é colocar mais memoria.
+
+Memoria CMOS RAM: É a área onde dados de configurações do computador ficam armazenadas (tipo: data e hora), para que essas informações não se percam uma bateria é colocada na placa mãe.
+
+Memoria VRAM e WRAM: Mémoria utilizada em placas de vídeo, permitem escrita e leitura ao mesmo tempo, tem um bom desempenho.
+Quando você não tem placa de video em seu computador, o video "padrão" da placa mãe tira um "pedaço" da memoria ram para executar o video.
+
+Identificando módulos de memória:
+
+DRAM - Alguns dos tipos mais antigos de memoria DRAM incluem tecnologias como FPM, EDO e BEDO e a sua velocidade era medida pelo tempo de acesso em nanosegundos, algo entre 60ns e 100ns. (Não é mais usada).
+
+SDRAM - A memoria é sicronizada com o barramento da cpu (a conexão entre o processador e outros componentes da placa-mãe).
+
+As memorias SDRAM são indentificadas de acordo com a velocidade do barramento, por exemplo PC100 indica que essa memoria deve rodar corretamente em um barramento de 100MHz.
+
+São classificadas como memoria DIMM - Dual inline memory modules (memoria fisica). (Não é mais usada)
+
+Rambus DRAM (RDRAM) - Esse tiṕo de memoria foi lançado com o pentium 4 de 400MHz.
+Modulos de 16 bits (184 pinos) e 32 bits (232 pinos)
+A pesar do alto desempenho, perdeu espaço para as memorias de tipo DDR.
+
+Double data Rate (DDR) SDRAM - Faz transferências duas vezes para cada ciclo de clock.
+Por exemplo: DDR PC-1600 significa que a taxa máxima de transferência é de 1.600MB/s.
+Modulo DIMM de 184 pinos para desktop ou modulo SO-DIMMs de 200 pinos para computadores portateis. - Utiliza 2.5V
+
+Double data Rate 2 (DDR2) SDRAM - Mais rápida que a DDR.
+Por exemplo: PC2-3200 significa que a taxa máxima de transferencia é de 3.200MB/s.
+Modulo DIMM de 240 pinos para desktop ou modulo SO-DIMMs de 200 pinos para computadores portateis. Utiliza 1.8V
+
+Double data Rate 3 (DDR3)SDRAM - Utiliza cerca de 30% a menos que energia elétrica.
+Por exemplo: PC3-6400 significa que a taxa máxima de transferencia é de 6.400MB/s.
+Modeulo DIMM de 240 pinos para desktop ou modulo SO-DIMMs de 204*pinos para computadores portateis. Utiliza 1.5V
+
+Latência CAS: Latência CAS é a quantidade de pulso de clock entre a memoria receber um comando para ler dados e a primeira parte desses dados começarem a ser entregues.
+Também conhecida como CAS latency, CAS#, CL#, CAS=# ou CL=#.
+CAS = Column Address Strobe.
+(Quando tiver CL3 (ou +) escrito na blaca de memoria, quer dizer que é 3 clock de memoria.... Quanto maior a latencia, maior a velocidade de entrega de dados da memoria.
+
+Paridade: A veirifcação de paridade consiste no armazenamento de um bit de paridade representando a paridade (par ou impar) de uma pequena quantidade de dados (normalmente um bayte) armazenada na memória e a comparação subsequente do dados armazenados com a paridade computada para detectar se ocorreu um erro de dados.
+Os erros nem sempre são verificados e nunca são corrigidos.
+
+Sempre que for por mais memoria na maquina, é importante que a mesma tenha as mesmas configurações (fabricante, tamanho, latencia, velocidade etc.). Ou a maquina terá um desempenho muito ruim!.
+
+Caso o micro ficar desligando... Verifique se ele está aquecendo muito rápido, e neste caso se sim, verifique o cooler e verifique a pasta termica... Se estiver seca, troca ela e coloca um pouco da nova em cima do micro processador e coloca novamente o cooler.
+
+_________________________________________________________________ 
+
+O cache de memória aumenta o desempenho do sistema ao permitir que o processador possa usar dados recentemente buscados da memória principal.
+
+
+
+
+
+
+

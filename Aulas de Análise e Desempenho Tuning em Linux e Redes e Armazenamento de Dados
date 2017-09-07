@@ -1,0 +1,875 @@
+Análise de Desempenho Tuning em Linux:
+
+
+* Primeiramente é peciso encontrar os Bottlenecks (gargalos) que estão no ambiente.
+ - Verificar o sistema operacional;
+ - Verificar o sistema de redes;
+ - Verificar o hardwares;
+
+Após verificar todos estes sistemas e o hardware, ae sim será o momento de verificar se todos estão aptos a suportar o software, ou qualquer outro sistema.
+
+* Problemas de desempenho não acontecem da noite para o dia. E se aconteceu, é porque alguém mexeu, ou houve a instalação de algum software que ocasionou o problema.
+
+* Pode acontecer de softwares gerar problemas de desempenho no servidor, como por exemplo: Aplicações que utilizam de forma incorreta query's do banco de dados.
+
+* Importante sempre saber o porque precisa de novos ou mais recursos para o hardware.
+ - Fazer documentação do porquê;
+ - Fazer gráficos, anotações, etc.
+
+* Utilizar testes apropriados, utilizar ferramentas para isto.
+ - É importante olhar o ambiente como todo, pois problemas no hardware ou sistema pode ser problemas do proprio ambiente, como por exemplo, o sistema pode ficar lento por conta do uso de swap, neste caso o hardware precisa de mais memoria, ou seja, não tem nada haver com algo em rede ou uso do software.
+
+* Documentar tudo!
+ - Estudar o hadware, sistema operacional etc. É preciso extrair tudo! Se possivel tire uma imagem completa do ambiente.
+   - Ferramentas como: system-imager, clonezzila, dd, xcat, etc.
+
+ - É preciso documentar tudo antes da alteração e após a alteração no hardware, sistema, software, redes etc. Pois se algo der errado, terá a oportunidade de deixar tudo como estava antes.
+ - parametros, ferramentas... Pois é importante documentar porque melhorou ou piorou o desempenho etc, quais ferramentas foram utilizadas para ter estas melhorias ou problemas atc.
+
+* Diminuir os gargalo e encontrar a causa.
+ - Resolver a causa do gargalo tentando fazer uma modificação por vez. Se usou uma ferramenta e ficou bom, puxa outra para ver se melhora mais ainda... Caso piorar, da um passo para trás e deixa como estava e depois teste outras até ter certeza qual ferramenta foi a melhor. E documenta!!
+
+ - Desenvolver um modelo do sistema na qual você diagrama todos os componentes;
+ - Planejar quais os tipos de evidências você poderá coletar;
+ - Coletar as evidências de uma aplicação em execução;
+ - Analisar as evidências.
+ - Antes de meter a mão na massa, procurar saber se os drives estão atualizados, se o sistema operacional está atualizado (claro procurando saber se existem softwares etc, que funciona apenas na versão atual do sistema operacional, caso existem softwares que só aceita a versão que está no ambiente, não mexa! procure primeiramente homologar(tirar uma copia) do sistema atual e verificar se o software aceitaria de boa a nova versão do sistema operacional sem gerar gargalos), o que foi colocado no ambiente etc; - O sistema operacional está atualizado? os drives estão atualizados? - Não? - Então atualize e verifique se os gargalos sumiu, caso contrario eu irei meter a mão na massa!
+
+* Contruir um modelo do sistema que necessitas ajustar - incluindo todos os componentes. Isso poderá requer diagramas separados para cada subsistema.
+
+* Coletar informações:
+ - Modelo;
+ - Configuração;
+ - Periféricos;
+ - Sistema operacional e última atualização;
+ - Quanto tempo está funcionando?... É igual carro, quando você tira ele da loja ele sai perfeito... Mas com o tempo ele começa a perder desempenho (repare que o problema não foi da noite para o dia!).
+
+ - Alguns gargalos apresentam após atualização do sistema operacional também, pois existem softwares ou periféricos que aceitam e funcionam corretamente apenas em uma determinada versão.
+
+ - Comandos:
+   - dmidecode            - Informações do hardware
+   - cat /proc/cpuinfo    - Informações sobre processador
+   - cat /proc/meminfo    - Informações sobre memoria
+   - lspci, lsusb, lshal  - Informações de interface
+   - fdisk -l             - 
+   - df -h
+   - cat /etc/lsb-release ou cat /etc/redhat-release
+   - uname -a
+   - uptime
+
+ - Se quiser e salvando essas informações em um arquivo faça, exemplo: cat /proc/meminfo >> hardware
+
+ - Comandos para acompanhamento da utilização do SO e hardware:
+   - # free -> Exibe os dados de consumo de alguns recursos do hadware. De uma forma dinamica pode acompanhar em tempo real estes dados fazendo - # "watch -n 1 free".
+   - # top
+   - # htop
+
+ - Quando acontece os gargalos? Quais os sintomas? Poderia me dizer quais são as mensages de erro? Houve mudanças no servidor? Houve alguma alteração em algum software que utilizam junto ao servidor?
+ - Qualidades de drivers e hadware. (Pesquisar por TCP offload, uma boa escolha para quem possui gargalos em redes).
+ - Quais pessoas (funcionários etc.) está tendo estes problemas? Todos? Então pode ser no servidor... Apenas uma? Então deve ser em sua máquina ou sua aplicação.
+ - Problemas de desempenho pode não estar no servidor, mas no ambiente que vai até o servidor. 
+ - Acompanhe o desempenho do sistema.
+ 
+* Metricas 
+ - Latência: é a medida de quanto tempo leva para uma requisição para um dado item de dados seja satisfeita;
+ - Bandwidth: é a medida de quantas unidades de um dado tamanho pode ser tranferida sobre uma dada conexão em uma especifica quantidade de tempo; ex: bps, Bps
+
+ - Throughput: É a quantidade de trabalho que pode ser executada por unidade de tempo. Note que "vazão" não é a mesma coisa que "largura de banda". Note que especificações de largura de banda não tomam a sobrecarga de um protocolo sobre um aplicação. Para um caminho de dados de uma determinada largura de banda, a vazão poderá sempre ser menor de que a largura de banda. Vazão é sempre expressa na mesma unidade que largura de banda.
+
+* Gargalos de CPU
+ - Nem sempre quando a máquina esta tendo muito uso de CPU, não quer dizer que o problema possa ser a máquina, mas sim no subsistema de I/O.
+ - As vezes aplicações precisa realmente utilizar bastante recursos de CPU.
+ - É importante verificar se a máquina está adequada a segurar aplicações que exija muito do hardware.
+ - Não tomar a responsabilidade de montar máquina para servidores, principalmente para banco de dados.
+ - Comprar máquinas top de linha!
+
+* Camada do Negócio: coletando informações sobre a aplicação:
+
+ - Conhecer a aplicação:
+   - Como a aplicação é chamada?
+   - Qual é o proposito da aplicação?
+   - Quantos hosts executam a aplicação?
+   - Existe algum período de pico de execução?
+ - Para verificar e testar velocidade de escrita em disco, velocidade e consumo de I/O etc. Faça:
+   - # dd if=/dev/zero of=/root/saida.data bs=4096 count=100000
+     - é importante utilizar este método na mesma máquina que está fazendo a análise, porque neste caso está simulando que algum software de fora está escrevendo no disco desta máquina
+
+     - Para acompanhar o tráfego abra o comando # top ou # vmstat 1 100 também na mesma máquina, ou seja será preciso abrir dois console na mesma máquina para fazer ambos comandos.
+
+* Mudanças
+
+ - RedHat
+   - /etc/sysctl.conf -> # cd /etc -> # vim sysctl.conf
+     -Fica armazenado todas as configurações do kernel, para após o reboot iniciar todas as configurações. (Importante estudar todos os prametros)
+
+ - Echo "value" >/proc/kernel/parameter
+   - Is reset at boot
+
+ - Remove all unneeded services
+   - /etc/xinetd.d/
+   - X, pop, ....
+
+ - No comando # ntsysv consegue-se verificar os serviços que são iniciados junto ao sistema operacional, e desativa-los se for necessario... Sendo alguns desativados, é liberada mais memoria para o sistema e com isso ganha-se desempenho. -> CentOS. Em debian é # rcconf
+
+ - Kill
+   - Parametros (help) do Kill -> # kill -l
+   - Exemplos: Para parar um processo execute o # top identifica o PID e faça: # kill 19 1567. Onde 19 é a opção do kill e 1567 é o PID... Para Continuar a execução faça: # kill 18 1567. Para matar o processo utiliza a opção 9 do kill. Se Não matar com a opção 9 escolha -9.
+
+* Processos
+
+ - Renice -> Quanto maior for o renice menor será sua prioridade... Quanto menor for seu renice, maior é sua prioridade.
+   - Exemplo: 
+
+    PID  USER     PR   NI    VIRT    RES    SHR    S  %CPU  %MEM     TIME+  COMMAND 
+   1655  root     20   0  2933604  0,982g  982352  S   7,6  26,2   5:36.57  VirtualBox
+   
+   - Neste caso a prioridade do Virtual Box é 20 e o Renice dele é 0, ou seja, ele não tem tanta prioridade, mas também não ta baixa, está normal.
+   Se dermos mais prioridade para ele devemos fazer: # renice -5 1655 -> onde renice é o comando, -5 é prioridade dada.
+
+    PID  USER     PR   NI    VIRT    RES    SHR    S  %CPU  %MEM     TIME+  COMMAND 
+   1655  root     15  -5  2933604  0,982g  982352  S   7,6  26,2   5:36.57  VirtualBox
+
+   - # renice -5 1655 -> Neste caso ele está recebendo prioridade da CPU.
+
+    PID  USER     PR   NI    VIRT    RES    SHR    S  %CPU  %MEM     TIME+  COMMAND 
+   1655  root     25  +5  2933604  0,982g  982352  S   7,6  26,2   5:36.57  VirtualBox
+
+   - # renice +5 1655 -> Neste caso estamos fazendo com que ele tenha menos atenção da CPU
+
+    PID  USER     PR   NI    VIRT    RES    SHR    S  %CPU  %MEM     TIME+  COMMAND 
+   1655  root     20   0  2933604  0,982g  982352  S   7,6  26,2   5:36.57  VirtualBox
+
+   - # renice 0 1655 -> Neste caso estamos fazendo com que ele receba de forma normal a atenção da CPU.
+
+ - Definindo a CPU que o processo deverá rodar:
+   - Para denifir onde o processo deve rodar utilize o taskset:
+     - # taskset -> Com este comando você verá parametros help para ajudar.
+     - # taskset -pc 1 1655 -> onde taskset é o comando, -pc será p o PID do processo e c qual a CPU. Desta forma o processo virtualBox rodará somente na CPU 1.
+
+   - Dando o comando # taskset -p 1655 -> verá onde o processo está rodando.
+ 
+- ulimit -> Este comando permite controlar os recursos disponiilizados para o shell e pelos processos inicializados por ele.
+  - É possivel com ele definir configurações do uso do computador por alguns software... A seguir mostra alguns exemplos:
+
+    - Neste caso iremos supor que exista um software chamado memoria10 segue suas configurações: -> utiliza 300MB os 4 core, e seu nice é -4. Porém este processo não necessita disso tudo, pois quando utilizado ele pode consumir até mais que isso e carregar muitos outros processos... Iremos definir as suas configurações no arquivo: # cd /etc -> # cd security/ -> # vim limits.conf.
+-> Dentro haverá parametros como:
+
+#<domain>        <type>  <item>  <value> -> onde <domain> é o nome do software, que no nosso caso é memoria10, <type> o tipo, onde soft é tipo software e hard é hardware, <item> parametros que será passados para este processo (dentro do arquivo de configurações tem os parametros como amostra), <value> o valor passado para o item no qual é o parametro do processo.
+
+Definindo configurações para o memoria10:
+
+#<domain>        <type>  <item>  <value>
+memoria10         soft     nice     0
+
+
+! Neste caso tiramos o nice dele de execução que era -4 e colocamos como 0. Agora sempre que ele for iniciado, terá o nice 0 como default.
+* Não é preciso fazer isto somente para software, podemos por isso a nivel de usuário também neste caso fazemos... Supondo que exista um usuário chamado Teste, onde ele possui 4G de memoria para ser usado por ele.
+
+#<domain>        <type>  <item>       <value>
+memoria10         soft    nice           0
+Teste             hard    msgqueue     10000
+
+! Neste caso definimos que ele não irá mais utilizar 4G apenas 1G.
+! Podemos colocar mais de uma configuração em um mesmo domain, segue o exemplo onde colocamos para o memoria10 utilizar apenas 200MB:
+
+#<domain>        <type>  <item>       <value>
+memoria10         soft    nice           0
+memoria10         soft    msgqueue     200
+Teste             hard    msgqueue     10000
+
+! Como vimos pode-se ter total poder em manipular as configurações. (não se preocupe com os <item> : nice,msgqueue etc. Pois estes parametros vão estar dentro do arquivo limits.conf e com seus detalhes).
+
+ - Caso esteja utilizando muitos softwares e recursos do SO, pode acontecer da memoria não suportar tanta execução e entrar em swap, porém, para voltar ao normal pode-se fechar alguns processos e estabilizar todo o SO. Mas, o swap ainda mostrará com uso, pois lá se encontra vestigios de cache dos processos que foram fechados, neste caso utiliza-se os seguintes comandos:
+  - # sudo swapoff -a e depois sudo swapon -a.
+
+ - # iostat 3 -x /dev/sda1 -> onde iostat é o comando, 3 é a quantidade que vai executar, /dev/sda1 é qual partição quer análisar. O iostat ajuda a ver em tempo real o numero de escrita em disco em tempo real.
+
+* Raid
+
+ - Primeiramente para não haver problemas futuros e nem dores de cabeça com o desempenho é preciso saber o seguinte: É preciso utilizar os discos dos mesmo tamanho, mesmo fabricante, mesmas configurações e caracteristicas etc.
+
+ - Quando for comprar um arranjo; storage etc. Note a quantidade de memoria, quanto mais memoria melhor, logo a quantidade cache será maior aumentando assim o desempenho.
+
+ - Se um disco queimar, o desempenho cai! Porque ele perderá paridades e após colocar outro ele terá que recalcular a paridade no novo disco e possivelmente cairá o desempenho I/O, logo terá muita escrita no novo disco, logo ele estará reconstruindo tudo novamente. Ou seja, levará um tempo até o desempenho ficar normal.
+
+! Tipos de Raid:
+
+ RAID 0 - Striped Disk Array Without Fault Tolerance (Melhor. Porém, perdeu um hd, perdeu tudo)
+
+- Se queimar um disco, perdeu tudo que tem nele;
+- Único disco virtual;
+- Não possui nenhuma redundância;
+- Melhor "desempenho";
+- Tamanho do segmento - "chunk size" - deverá ser ajustado de acordo com aplicação;
+- Se algum disco apresentar falhas comprometerá todo o arranjo;
+- Utilizar discos com as mesmas caracteristicas;
+- Exemplos de utilização: área de rascunho, área temporária;
+
+RAID 1 -Mirroring and Duplexing
+
+- Disco espelhados;
+- Perda de desempenho no processo de escrita;
+- Redundancia no "espelho";
+- Utilizar discos com as mesmas caracteristicas;
+- Pode ser feito na forma de "hot-swap";
+- Não utiliza paridade;
+
+RAID 5 - Block Interleaved Distributed Parity (Armazenamento com bom desempenho)
+
+- Redundancia através de paridade distribuida;
+- Dados distribuidos pelo discos;
+- Melhor desempenho na leitura;
+- Utilizar discos com as mesmas caracteristicas;
+- Suporta somente uma única falha de disco;
+- Mínimo de 3 discos para operar;
+- Perde-se "um disco" usado pelo processo de paridade distribuida;
+
+Raid 6 - Independent Data Discks with double parity
+
+- Redundância maior através de dupla distribuida;
+- Dados distribuidos pelos discos;
+- Desempenho inferior ao raid 5 em 8% na escrita;
+- Utilizar discos com as mesmas caracteristicas;
+- Suporta até duas falhas de disco;
+- Precisa N+2 discos para operar;
+- Perde-se "dois-discos" usados pelo processo de paridade distribuida;
+- Grande aplicabilidade em ambiente de missões criticas;
+
+Raid 10 - A Stripe of Mirrors (Segurança e alto desempenho)
+
+- Espelhamento com dados distribuidos;
+- Segurança contra perda de dados;
+- Utiliza discos com as mesmas caracteristicas;
+- Suporta metade em falhas de discos;
+- Precisa N*2 discos para operar;
+- Sacrifica 50% do espaço bruto;
+- Grande aplicabilidade em ambientes de missões criticas;
+ 
+(*************** Para uma explicação show e mais detalhada acesse http://www.hardware.com.br/comunidade/raid-tutorial/665151/ ****************)
+
+! Criando um raid do tipo 1 em linux:
+
+  - # mdadm --create /dev/md1 --verbose --level=1 --raid-devices=2 /dev/sdb /dev/sdc
+    - Onde --create /dev/md1 é a criação do arranjo com o nome md1 (pode ser qualquer nome), --level=1 é o tipo de raid que no nosso caso foi o Raid do tipo 1, --raid-devices=2 é a quantidade de disco que o arranjo vai ter, que no nosso caso mostra 2, /dev/sdb /dev/sdc é as unidades de discos que serão montadas no arranjo para fazer o Raid 1.
+
+Para ver os seus discos faça: # fdisk -l  
+
+  - Ou se caso preferir pode-se utilizar o spare (disco reserva), para que se caso um disco queime, ele entra automaticamente no lugar deste disco queimado:
+  
+  -  # mdadm --create /dev/md1 --verbose --level=1 --raid-devices=2 --spare-devices=1 /dev/sdd /dev/sde /dev/sdf --> onde --spare-devices=1 diz que iremos utilizar um disco desses que estamos colocando no raid como reserva, ou seja, será o /dev/sdf.
+
+  - Criando um diretorio para o arranjo:
+    - # mkdir /raid-1
+  - Formatando o arranjo do Raid md1:
+    - # mkfs -t ext4 /dev/md1
+  - Montando o arranjo md1 dentro do diretorio:
+    - # mount /dev/md1 /raid-1/
+  
+  - Detalhando o arranjo para que quando o sistema for reinciado, ele saber que existe uma arranjo:
+    - # mdadm --detail --scan > /etc/mdadm.conf
+
+  - Caso queira que ele seja reconhecido de força automatica após iniciar o PC faça:
+    
+    - Abra o arquivo:
+    
+      - # vim /etc/fstab
+        - e coloca dentro do arquivo:
+          - /dev/md1             /raid-1             ext4            defaults      0 0
+    
+    wq (para salvar)
+
+    # umount /raid-1
+    # mount /raid-1 
+
+  - Inserindo no arquivo um alerta para caso aconteça algum problema no arranjo:
+    - # vim /etc/mdadm.conf
+      - Dentro do arquivo insira:
+        - MAILADDR root@localhost.localdomain -> Neste caso se houver um problema ele irá informa neste email (acredito que possa se qualquer email).
+    
+    - Ativando o alerta:
+      - # /etc/init.d/mdmonitor restart
+
+  - Para monitorar o arranjo criado:
+    - # cat /proc/mdstat
+      - Caso houver algum roblema será atribuido uma letra F ao status, informando o que há um problema no disco tal, dentro do arranjo.
+
+  - Trocando um disco no arranjo:
+
+	# mdadm --manage / dev / md1 --fail / dev / sdd  -> Simulando um erro no disco! Não é possivel remover um disco sem problemas.
+	# umount / dev / md1 
+	# mdadm --manage / dev / md1 --remove / dev / sdd 
+
+    - Adicionando um novo disco no arranjo: 	 -> Montando um novo disco sdb.
+    - Se você da um # watch cat /proc/mdstat verá os disco sicronizando novamente.
+ 
+  - Aumentado o arranjo: Neste caso adicionamos mais 2 discos no arranjo
+
+   - # umount /raid-1
+
+(Se caso houver algum problema para desmontar: como dipositivo em uso etc. pode forçar com -l: # umount -l /raid-1)
+
+   - Agora vamos crescer ele.
+   - # mdadm --grow /dev/md1 --raid-devices=3
+   - # mdadm --add /dev/md1 /dev/sdh
+   - Se damos # mdadm --detail /dev/md1 --> veremos lá os discos dentro arranjo.
+   - Como crescemos o arranjo, temos que crescer também o mdadm, porém apenas quando terminar a sicronização. Para ver a sicronização faça # cat /proc/mdstat
+
+    - # e2fsck -f /dev/md1
+
+(Caso haja algum problema informando que o dispositivo está em uso etc. Reinicie o NFS do servidor:# /etc/init.d/nfs restart)
+
+   - Temos que crescer também o sistema de arquivos, porém apenas quando terminar a sicronização. Para ver a sicronização faça # cat /proc/mdstat
+
+    - # resize2fs /dev/md1 
+
+   - Agora monte # mount /raid-1
+
+ - Agora vamos compartilhar o raid-1 na rede para os clientes. É importante verificar o firewall do servidor, ou neste caso desativar temporariamente.
+
+   *Processos no vervidor:
+
+   - Primeiramente starta o NFS: /etc/init.d/nfs start
+   - Abra o arquivo exports com: # vi /etc/exports
+   - Dentro do arquivos vamos inserir as regras na rede:
+   
+   - Vamos conhecer elas:
+   
+     - para compartilhar a pasta "/raid-1" como somente leitura, para todos os hosts da sua rede local, adicione a linha:
+     /raid-1 192.168.25.*(ro,async)
+     :wq (para salvar)
+ 
+    - Para compartilhar a pasta "/raid-1" com permissão de leitura e escrita, adicione a linha:
+    /raid-1 192.168.25.*(rw,async,no_subtree_check)
+    :wq (para salvar)
+
+    Obs: é importante conceder autorização no servidor para que o cliente tenha essa liberdade:
+    # chmod 1777 /raid-1
+  
+    - Para compartilhar a pasta "/raid-1", com *apenas* um host:
+    /raid-1 192.168.25.4(rw,async,nosubtree_check)
+    :wq (para salvar) 
+
+    # chmod 1777 /raid-1
+    # chmod  777 /raid-1
+   
+   Obs: Depois de fazer os procedimentos no arquivo é preciso restartar o NFS: # /etc/init.d/nfs start
+
+ * Processo no cliente (host):
+
+   Ao compartilhar os diretórios, resolvemos apenas metade do problema. Ainda falta acessá-los a partir dos clientes.
+
+   Para montar o compartilhamento manualmente, use (como root) o comando:
+   Criando um diretório na raiz: # mkdir /Arquivos
+   # mount -t nfs 192.168.25.50:/raid-1 /Arquivos/
+
+   (onde 192.168.25.50 é o servidor que tem o diretório NFS que esta sendo compartilhado. :/raid-1 é o local da pasta no servidor. /Arquivos/ é o diretório criado onde vai ser montada a pasta raid-1 no cliente).  
+
+Obs: Se você acessa o compartilhamento freqüentemente, pode ganhar tempo inserindo uma entrada referente a ele no arquivo 
+
+# vi /etc/fstab 
+
+Assim você pode montar o compartilhamento usando o comando simplificado, ou configurar o sistema para montá-lo automaticamente durante o boot.
+
+Basta incluir a linha no final do arquivo, deixando sempre uma linha em branco após ela. A linha para o compartilhamento que acabamos de montar seria:
+
+    192.168.25.50:/raid-1 /Arquivos nfs noauto,users,exec 0 0
+
+
+Neste exemplo o "192.168.25.50:/raid-1" é o IP do servidor, seguido pela pasta compartilhada e o "/raid-1" é a pasta local onde este compartilhamento ficará acessível e o "nfs" é o sistema de arquivos, os mesmos parâmetros que usamos no comando manual.
+
+O "noauto" faz com que o compartilhamento não seja montado automaticamente durante o boot. Você pode monta-lo e desmonta-lo conforme for utilizá-lo usando os comandos "mount /Arquivos" e "umount /Arquivos". Note que graças à entrada no fstab, você agora precisa especificar apenas a pasta, pois o sistema lê os outros parâmetros a partir da entrada no arquivo.
+
+O parâmetro "users" permite que você monte e desmonte o compartilhamento usando seu login normal, sem precisar usar o root e o "exec" permite executar programas dentro do compartilhamento. Caso você esteja preocupado com a segurança, pode remover as duas opções.
+
+Caso o servidor fique sempre ligado e você queira que o compartilhamento seja montado automaticamente durante o boot, retire o "noauto". Neste caso a linha ficaria:
+
+    192.168.25.50:/raid-1 /Arquivos nfs users,exec 0 0
+
+Por padrão, os compartilhamentos do NFS são montados com a opção "hard". Isso causa um certo transtorno quando o servidor é desligado ou desconectado da rede, pois os clientes ficam tentando se reconectar ao servidor indefinidamente, fazendo que programas travem ao tentar acessar ou salvar arquivos no compartilhamento e você não consiga desmontá-lo por vias normais até que o servidor volte.
+
+Para prevenir este problema, você pode montar os compartilhamentos (nos clientes) usando a opção "soft". Neste caso o compartilhamento é escondido caso o servidor seja desconectado e programas tentando acessa-lo passam a exibir mensagens de "não é possível ler o arquivo" ao invés de travarem. Para usar esta opção, adicione a opção "-o soft" no comando de montagem:
+
+    # mount -t nfs -o soft 192.168.25.50:/raid-1 /Arquivos
+
+
+A linha no "/etc/fstab" com a opção fica:
+
+    192.168.25.50:/raid-1 /Arquivos nfs users,exec,soft 0 0
+
+
+
+Remover Raid no linux – Software
+
+Primeiro desmonte o volume.
+
+umont /dev/md0
+
+em seguida pare o raid
+
+mdadm --stop /dev/md0
+
+Agora podemos apagar o raid
+
+mdadm --remove /dev/md0
+
+Feito isso, remove os metadados dos discos
+
+mdadm –zero-superblock /dev/sdb
+
+mdadm –zero-superblock /dev/sdc
+
+
+
+
+
+* LVM
+
+
+ - O LVM ele não tem segurança nos dados, logo se queimar um disco, perde-se tudo.
+ - Neste caso para ter segurança dos dados é uma opção utilizar o RAID:
+  
+ - 4) CAMADA ----> Filesystem
+   3) CAMADA ----> LVM        (Software)
+   2) CAMADA ----> RAID       (hardware / Software)
+   1) CAMADA ----> DISCOS
+
+   - Quanto mais camada e segurança que se coloca, mas é afetado o desempenho... Logo vimos que o Raid também afeta, logo quanto mais camadas tem, mais problemas de desempenho se tem.
+
+ - A ideia do LVM é:
+
+   Storage:
+     Primeiro Raid ----> 5 Discos;
+     Segundo  Raid ----> 8 Discos;
+     Terceiro Raid ----> 3 Discos;
+   
+   Pegar estes 3 Raid e transformar em um unico Disco. No qual se chama LVM. E apartir dai particionar ele para a demanda.
+
+ - Como criar um LVM:
+ 
+ Obs: Nessa pratica utilizamos 3 HD de 8G cada, neste caso não estamos utilizando Raid, se fosse utilizar raid, seria utiliza 3 Raid para criação;
+ - LV1 ----> 8G ----> sdb
+ - LV2 ----> 8G ----> sdc
+ - LV3 ----> 8G ----> sdd
+
+   - Como os discos foram apenas colocados é preciso criar as partições para eles:
+     - Criando a partição do primeiro disco que é o LV1: # fdisk /dev/sdb --> # p --> # n --> # p --> Selecione o numero da partição de 1 a 4 - # 1 --> Da [enter] para confirmar --> Depois [enter] de novo. Agora iremos mudar o tipo de partição - # t --> Para listar os tipos de partições selecione # L , se já sabe qual é o tipo de partição, como no nosso caso já sabemos apenas digite o código: # 8e --> Pode ir mostrando o resultado para ver se foi mesmo feita o tipo de partição # p --> # w . Pronto
+     
+       - É preciso fazer da mesma forma nas outras partições, o numero da partição deve também ser a mesma em todas. Obs: Não esqueça de mudar o nome do disco no momento da criação... Exemplo: sdb, sdc, sdd etc.
+
+   - Agora vamos criar o PV:
+     - # pvcreate /dev/sdb1 /dev/sdc1 /dev/sdd1	
+       - Dando um # pvs --> da para ver o volume criado e os HD lá dentro.
+         - Dando um # vgdisplay --> Vemos as unidades.
+  
+   - Agora vamos criar o Grupo de Volumes (VG) que é o volume inteiro, como se fosse um único HD e colocaremos as partições nele:
+     - # vgcreate datavg /dev/sdb1 /dev/sdc1 /dev/sdd1 --> Aqui estamos fazendo: coloca no volume o datavg (esse datavg pode ser qualquer nome que você quiser) e as partições que quero que faça parte.
+     - Agora dando um # vgs --> Da para ver o volume criado e com o total de gigas nele e também a quantidade de Discos dentro do datavg. Agora dando um # vgdisplay veremos ae que agora exibe apenas um volume com porém com as partições dentro.
+
+
+   - # vgscan --> Para atualizar o metadados.
+   - # vgchange -a y --> Ativar o volume.
+
+   - Agora podemos criar os volumes lógicos (podemos dizer as partições do LVM para ser utilizados):
+     - # lvcreate -L 10G -n alunos datavg --> Estamos dizendo: cria o volume alunos com 10G do meu volume datavg.
+     - Como exemplos iremos criar outro volume --> # lvcreate -L 5g -n professores datavg .
+     - Com o comando # lvs --> Da para ver quais volumes foram criados.
+
+     - Agora é preciso apenas formatar:
+       - # mkfs -t ext3 /dev/datavg/professores
+       - # mkfs -t ext3 /dev/datavg/alunos
+     - Agora vamos montar eles:
+       - # mkdir /alunos --> Criando a pasta alunos.
+       - # mkdir /professores --> Criando a pasta professores.
+       - # mount /dev/datavg/alunos /alunos --> Montando o volume alunos na pasta alunos.
+       - # mount /dev/datavg/professores / professores --> Montando o volume professores na pasta professores.
+     
+     -  Agora é preciso fazer com que eles sejam reconhecidos automaticamente ao iniciar o PC.
+       - Abra o arquivo # vim /etc/fstab --> e coloca:
+       - /dev/datavg/alunos          /alunos               ext3            defaults     0 0
+       - /dev/datavg/professores     /professores          ext3            defaults     0 0
+
+    - Agora vamos aumentar a quantidade de armazenamento de um volume... Neste caso utilizaremos o volume do professores.
+      - Neste caso iremos colocar tudo que ficou disponivel, ou seja, livre após criar alunos e professores, e jogaremos para professores:
+        - # lvextend -L l +100%FREE /dev/datavg/professores
+        - Se não quiser por os 100% faça: # lvextend -L 7.99GB /dev/datavg/professores .
+        - Só que temos um problema, era para ter desmontado antes de fazer a operação. Vamos fazer o seguinte agora:
+          - # e2fsck /dev/datavg/professores
+          - # umount /dev/datavg/professores
+          - # e2fsck -f /dev/datavg/professores
+          - # resize2fs /dev/datavg/professores
+          - # mount /professores
+
+    - Agora vamos ir até o arquivo fstab para por a montagem automatica:
+      - # vim /etc/fstab
+      - E lá dentro colocamos: /dev/datavg/alunos      /alunos            ext3           defaults     0 0
+                               /dev/datavg/professores /professores       ext3           defaults     0 0
+      - # umount /alunos
+      - # umount /professores
+      - # mount  /alunos
+      - # mount  /professores
+
+    - Porém as vezes, é comum o sistema mudar o nome do Disco, tipo; sdb1 para outro, neste caso fazemos o seguinte:
+      - Damos um # blkid /dev/datavg/alunos --> e pegamos o UUID dele
+      - Damos um # blkid /dev/datavg/professores --> e pegamos o UUID dele
+      - Vamos novamente até o fstab # vim /etc/fstab --> e colocamos ele lá
+        UUID="3276addb-68d9-4ae4-9e92-02e39d12ff10"      /alunos            ext3           defaults     0 0
+        UUID="4973afc8-027d-4eb1-a19e-3d9ef198dec2"      /professores       ext3           defaults     0 0    
+    
+    - Muitas das vezes isso ainda não adianta, e se caso o seu LVM ainda estiver se perdendo ou seja, não montando automaticamente, você deve fazer o seguinte, da um lvdisplay e copia o LV UUID e coloque o fstab. Que com certeza irá funcionar.    
+
+    - Para aumentar o LVM é só adicionar mais discos segue-se os passos:
+      
+      - Criando a partição do disco: # fdisk /dev/sdb --> # p --> # n --> # p --> Selecione o numero da partição de 1 a 4 - # 1 --> Da [enter] para confirmar --> Depois [enter] de novo. Agora iremos mudar o tipo de partição - # t --> Para listar os tipos de partições selecione # L , se já sabe qual é o tipo de partição, como no nosso no nosso caso já sabemos apenas digite o código: # 8e --> Pode ir mostrando o resultado para ver se foi mesmo feita o tipo de partição # p --> # w . Pronto
+
+      - Agora vamos criar o PV:
+	 - # pvcreate /dev/sdb1 /dev/sdc1 /dev/sdd1	
+	   - Dando um # pvs --> da para ver o volume criado e os HD lá dentro.
+	     - Dando um # vgdisplay --> Vemos as unidades.
+
+      - Agora vamos aumentar o nosso datavg que é nosso grupo de volumes, ou seja vamos por o novo disco lá ele lá dentro:
+        - # vgextend datavg /dev/sde1
+      - Agora dando um # vgs --> Da para ver o volume criado e com o total de gigas nele e também a quantidade de Discos dentro do datavg.
+
+      - Agora podemos utilizar os espaços disponivel no LVM... Vamos adicionar mais espaço para os alunos:
+        - # lvextend -L +12.99GB /dev/datavg/alunos
+
+        - # umount /dev/datavg/alunos
+        - # e2fsck -f /dev/datavg/alunos
+        - # resize2fs /dev/datavg/alunos
+        - # mount /alunos
+
+    - Agora vamos tirar os snapshot que não é backup, mas que "salva" o estado dos arquivos naquele momento e futuramente pode ser resturado. Se caso o LVM ainda possuir espaço você pode aproveitar um pouco para fazer o snapshot, caso contrario coloca outro disco no LVM.
+     - Para isso inserimos mais 1 disco e seguimos os mesmo procedimentos:
+     
+     - Criando a partição do disco: # fdisk /dev/sdb --> # p --> # n --> # p --> Selecione o numero da partição de 1 a 4 - # 1 --> Da [enter] para confirmar --> Depois [enter] de novo. Agora iremos mudar o tipo de partição - # t --> Para listar os tipos de partições selecione # L , se já sabe qual é o tipo de partição, como no nosso no nosso caso já sabemos apenas digite o código: # 8e --> Pode ir mostrando o resultado para ver se foi mesmo feita o tipo de partição # p --> # w . Pronto
+
+     - Agora vamos aumentar o nosso datavg que é nosso grupo de volumes, ou seja vamos por o novo disco lá ele lá dentro:
+        - # vgextend datavg /dev/sde1
+      - Agora dando um # vgs --> Da para ver o volume criado e com o total de gigas nele e também a quantidade de Discos dentro do datavg.
+
+     - Vamos criar o snapshot: Neste exemplo iremos utilizar o professores.
+
+       - # lvcreate -s -L 1.00G -n aula-snap /dev/datavg/professores -->  1.00G é o tamanho que iremos entregar ao local onde armazenará o diretorio que receberá o snapshot, aula-snap é o nome do snapshot, e o /dev/datavg/professores o caminho que vai tirar o snapshot.
+       - Agora vamos criar um diretorio para montar o aula-snap, ou seja é como se estivessemos fazendo uma restauração.
+
+       - # mkdir /snap
+       - # mount /dev/datavg/sula-snap /snap/ --> Montando no diretorio /snap
+
+       - Agora se formos lá dentro iremos ver que possui os mesmos arquivos que estavam em professores, e o legal de tudo isto, é que o snapshot não copia todo o disco, ele copia somente a quantidade de arquivos que tem no disco. Se der um # pvs --> vai ver que o disco que colocamos foi tirado 1G dele por conta do local para o snapshot que criamos.
+
+     - Para remover faça:
+       - # umount /snap/
+       - # lvremove /dev/datavg/aula-snap --> y
+     
+     - Agora iremos criar um LVM, porém com espelho.
+     - # pvcreate /dev/sdb1 /dev/sdc1 --> (Lembrando que os discos já devem estar com o filesystem 8e (LVM - Linux), caso não esteja segue o procedimento nos métodos passados em "Criando partição do disco:")
+
+     - Após isto, seguimos para o grupo de volume;
+     - vgcreate vg01 /dev/sdb1 /dev/sdc1
+     - Ativando o metadados --> # vgscan
+     - Agora vamos criar o arranjo de espelho --> # lvcreate -L 7.99GB -m1 --corelog -n espelho vg01 --> lvcreate criando o LVM, 7.99GB estamos criando espelho de 8GB que é a metade do atual LVM, pois como é 15.99 todo o LVM, vamos usar a metade para ser o espelho, -m1 está informado que será espelho, --corelog informa que os logs vão ser gerados lá, espelho é o nome do LVM, vg01 informa que o espelho será criado em cima do vg01.
+     - Com o comando # watch -n 1 lvs -a -o +devices --> poderá ver todo o sicronismo e os espelhos contruidos. Só segue este tutorial após ter 100%
+     - Agora formatar --> # mkfs -t ext3 /dev/vg01/espelho
+     - Agora vamos criar um diretorio --> # mkdir espelhovg01
+     - # mount /dev/vg01/espelho /espelhovg01
+    
+    - Caso aconteça algum problema no espelho, segue o tutorial como trocar:
+     - Primeiramente damos um # pvdisplay -m --> Para exibir os discos e seus espelhos.
+     - Você conseguirá ver o local e o espelho quebrado com a seguinte descrição abaixo do disco:
+     
+     --- Physical Segments ---
+     Physical extent 0 to 2046:
+        FREE
+
+     - Se existir isso é porque o espelho esta com algum problema e o ideal é troca-lo.
+     
+     - Para remover o disco fazemos # vgreduce vg01 /dev/sdb1 --> Onde vgreduce é o comando, vg01 é o arranjo e /dev/sdb1 é o disco.
+     - Da um # pvs --> Para verificar se foi removido e agora vamos inserir outro no lugar:
+     - # vgextend vg01 /dev/sdb1
+     - E vamos criar novamente o espelho, só que dessa vez vamos inserir ele, e ele irá se sincronizar com os dados que estão no outro disco para "recuperar" o que foi perdido.
+     - # lvconvert -m 1 --corelog /dev/vg01/espelho
+     - # Para verificar seu andamento e vê se ele já foi sicronizado faça # watch -n 1 lvs -a -o +devices 
+     
+     - A ideia do LVM com espelho é; com espelho se obtém mais segurança, pois existirá uma parte do LVM que será para uso e outro que será para espelho, tendo o espelho, caso o LVM dê algum problema os dados ainda estarão no espelho, sendo assim após trocado haverá o sincronismo que fará com que os dados do espelho sincronize com o novo disco colocado.
+
+    - Agora vamos aprender a recuperar LV caso for apagado sem acidentalmente:
+     - É importante, sempre quando for apagar algum LV fazer o backup # vgcfgbackup --> Irá fazer o backup de todo volume (LVM's);
+     - Se você remover um LV sem querer, pode recuperar novamente.
+     - Para isso, primeiramente vamos ao local dos backup e encontrar o backup que fizemos: # cd /etc/lvm/archive/ 
+     - Agora vamos primeiramente fazer o teste para verificar se ele irá conseguir restaurar os dados: # vgcfgrestore vg01 --test -f /etc/lvm/archive/vg01_00005-1007582983.vg 
+     - Se já for possivel retaurar podemos tirar o --test : # vgcfgrestore vg01 -f /etc/lvm/archive/vg01_00005-1007582983.vg
+     - Agora é só ativar ele # lvchange -a y /dev/vg01/espelho
+     - E pronto, backup restaurado =D
+
+    - Agora vamos mover os dados de um disco para outro para ele ser trocado caso aparetemente ele esteja travando ou tendo algum problema...
+     - Primeiramente colocamos um disco que será o substituto dentro do arranjo --> # vgextend vg01 /dev/sdf1
+     - Depois damos um # pvs -o+pv_used --> Para listar os discos do arranjo e identificar ele (também exibe se houver algum problema).
+     - E agora vamos mover os dados do disco defeituoso para o colocado # pvmove /dev/sdd1  /dev/sdf1 --> onde o /dev/sdd1 é o disco defeituoso e o /dev/sdf1 é o disco no qual está recebendo os dados movidos.
+     - Agora vamos tirar o disco defeituoso # vgreduce vg01 /dev/sdd1
+     - # pvremove /dev/sdd1 --> # pvs
+     - E pronto pode saca-lo.
+    
+    - Procurando disco com problemas:
+      - # vgs -o +devices
+      - # vgs -P -o +devices
+      - # vgs -a -o +devices
+
+* OpenFile
+   - Faça o download da iso em -> https://sourceforge.net/projects/openfiler/files/openfiler-distribution-iso-2.99-x64/openfileresa-2.99.1-x86_64-disc1.iso/download?use_mirror=nbtelecom
+
+   - Faz a instalação com as configurações necessarias para segurar as configurações futuras. Neste caso estamos utilizando um VM com 1GB de ram e um disco de 8GB para instalação. Importante ter os discos para fazer os processos.
+
+   - primeiramente, vamos configurar o servidor de relógio indo na opção "System", porém antes vamos configurar a rede... rola para baixo e verá umas espaços a serem preenchidos. Em Name coloque o nome da sua rede, escolhemos "LAN" e em "Network/Host" coloque o ip da rede que no meu caso foi "192.168.25.0" em "Netmask" coloque a mascara de rede que como a nossa é "255.255.255.0" em "Type" deixe "Share" e clique em "Update". Agora no lado deireito superior tem uma opção "Clock Setup" clique nele. Abaixo ele terá um espaço "Server" onde você deverá inserir o servidor de horário, neste caso como somos Brasil no link do pool pegamos o server e colocamos dentro, neste caso colocamos o "0.br.pool.ntp.org" do site -> http://www.pool.ntp.org/pt/zone/br. 
+
+   - Agora vamos criar um Raid via software... Vai em "Volumes" e no lado direito inferior encontrará a opção "Software RAID", clique.
+     - Clique em "create new RAID partitions." Repare que além dos discos que estarão para fazer o Raid, está incluido o do SO. Então identifique-o como Label Type = msdos. Clique na identificação do disco que fará parte do Raid "Edit Disk" (exemplo: /dev/sdb) e apareçerá outra página, onde abaixo tem "Create a partition in /dev/sdb" onde você criar a partição. Em "Mode" deixa "Primary". "Em Parition Type" deixa "Raid Array Member". Em "Starting cylinder" deixa "1044". Em "Sizer" ele já vai estar por padrão a quantidade do disco. E clica em "Create". Clique em "Block Device" ao lado direito e Faça o mesmo processo para os outros que farão parte do Raid. Depois clique novamente em "Software RAID". Descendo para baixo verá o titulo "Create a new RAID array" e mais abaixo faremos o arranjo. Em "Select RAID array type" escolherá o tipo de arranjo que fará com os discos, no nosso caso escolhermos Raid0. EM "Select chunk size" escolherá o tamanho o chunk, no nosso caso deixamos o padrão 64KB. e abaixo, selecione do lado esquerdo os discos que farão parte do arranjo. E clique em "Add Array".
+Depois clique em "Volume Groups" que está ao lado inferior direito. Coloque o nome do grupo que no nosso caso colocamos "hugovidal-2" e selecione os discos que farão parte do volume (ou seja, neste caso o Raid que criamos anteriormente). E agora finalmente podemos fazer os LVs que será o momento onde iremos dividir o volume em partições. Clique em "Add Volume" ao lado direito. escolha o VG que no nosso caso é "hugovidal-2" e clique em "change".E criaremos um volume para Suporte.Rolando a página para baixo verá "Create a volume in "hugovidal-2" onde abaixo você informará o Nome do volume, descrição, quantidade e FileSystem. No nosso caso fizemos em Nome: "Suporte" e em Descrição: "Suporte volume". Abaixo a quantidade que será para Suporte. E abaixo o FileSystem onde colocamos "ext3. E depois clique em "Create". Colocamos ext3 porque iremos disponibilizar esse grupo via NFS.
+
+
+   - Agora vamos criar um LVM via software... Vai em "Volumes" e no lado direito inferior encontrará a opção "Block Devices", clique. Clique na identificação do disco que fará parte do LVM "Edit Disk" (exemplo: /dev/sdb) e apareçerá outra página, onde abaixo tem "Create a partition in /dev/sdb" onde você criar a partição (PVs). Em "Mode" deixa "Primary". "Em Parition Type" deixa "Physical volume". Em "Starting cylinder" deixa "1" e "Ending cylinder" deixa "1044". Em "Sizer" ele já vai estar por padrão a quantidade do disco. E clica em "Create". Clique em "Block Device" ao lado direito e Faça o mesmo processo com os outros discos que farão parte do LVM. Depois clique em "Volume Groups" que está ao lado inferior direito. Coloque o nome do grupo que no nosso caso colocamos "hugovidal" e selecione os discos que farão parte do volume. E agora finalmente podemos fazer os LVs que será o momento onde iremos dividir o volume em partições. Clique em "Add Volume" ao lado direito. escolha o VG que no nosso caso é "hugovidal" e clique em "change". E criaremos um volume para Aluno e outro para Professor.Rolando a página para baixo verá "Create a volume in "hugovidal" onde abaixo você informará o Nome do volume, descrição, quantidade e FileSystem. No nosso caso fizemos em Nome: "Professor" e em Descrição: "Professor volume". Abaixo a quantidade que será para Professor. E abaixo o FileSystem onde colocamos "block (iSCSI,FCetc). E depois clique em "Create".
+
+* IOPS: IOPS é uma abreviação para Input/Output per Second, ou operações de entrada e saída por segundo, aplicada sobre dispositivos de armazenamento, como drives de discos, drives SSD e Storages.
+
+Mais informações: http://blog.blue.inf.br/2014/10/o-que-sao-iops-e-porque-sao-importantes.html
+
+Calculando o IOPS dos discos:
+
+
+
+* SNMP
+
+ - Download do SNMP - # yum install snmp* (é importante verificar se a maquina já possui um snmp em # cd /etc/ --> # cd snmp/ --> # vim snmpd.conf).
+ - Configurando o SNMP:
+   
+    - # snmpconf --> Logo ele irá perguntar onde quer mexer, neste caso escolhemos o # 1 --> Irá perguntar qual tipo de arquivo desejamos criar, neste caso escolhemos o # 1 (snmpd.conf) --> Irá perguntar qual o tipo de configuração queremos para arquivo, neste caso escolhemos o # 4 (trap destinations) --> Selecionaremos a versão 2 # 2 --> Agora vai pedir o numero do host que vai receber as configurações # 192.168.0.177 (no qual e a mesma máquina que estamos usando) --> Escolha o tipo de comunidade, o qual escolhemos foi # public --> E a porta # 162 --> # finished --> # 3 (System Information Setup) --> # 1 --> Escolha um local para o sistem: # VM Hugo --> # 2 --> Como a escolha foi contato do administrador então é preciso por o email: # huggorviddal64@hotmail.com --> # finished -- # finished --> # quit.
+
+    - Restarta o serviço: # service snmpd restart
+    - Vamos alterar o arquivo em # cd /etc/ --> # cd snmp/ --> # vim snmpd.conf
+     - Dentro iremos alterar dois parametros: syslocation Unknown (tira o que estava aqui) VM Hugo --> syscontact Root (apaga o que estava aqui) <huggorviddal64@hotmail.com>
+     - Restarta o serviço: # service snmpd restart
+     - # Para saber cada parametro passado ao comando acima dê apenas # snmpwalk (se não estiver este comando instale as dependencias: # yum install net-snmp* )
+     - para verificar se o serviço está funcionando faça: # snmpwalk -v2c localhost -c public
+
+ - Mas há um problema no SNMP versão 2 que o qual estamos utilizando, no envio e recebimento de pacotes na rede, pode-se pegar um pacote SNMP abri-lo e provavelmente encontrar a senha, isto não é legal, pois o invasor pode aproveitar está vulnerabilidade para fazer ataques, como por exemplo o mandmidlle.
+ - Para impedir esta vulnerabilidade foi lançado o SNMP versão 3 que será o que iremos utilizar.
+   - # service snmpd stop
+   - # net-snmp-create-v3-user -ro -A OS2015HU -a SHA -x AES server_user --> É importante que a senha tenha 8 caracter assim como fizemos: OS2015HU
+   - # service snmpd start
+   - # Para testar se esta tudo bem configurado faça: # snmpwalk -u server_user -A OS2015HU -a SHA -l authnoPriv 192.168.0.177
+     - Repare que o ip passado tem que ser da mesma máquina na qual está sendo configurada, assim como dito anteriormente.
+ 
+ - Configurando o ganglia para monitorar o desempenho da maquina:
+   - Como o processo é um pouco demorado e extenso encontrei a forma igual que o pitanga fez está disponivel neste site... 
+   - https://sachinsharm.wordpress.com/2013/08/17/setup-and-configure-ganglia-3-6-on-centosrhel-6-3/
+ 
+ - Ou pode escolher utilizar o cactEZ do tipo linux had hat.
+   - O cactEZ é um tipo de sistema operacional, você pode fazer o download dele e instalar em um VM.
+   - Após instalado ele fornecerá ferramentas de análise. No browser da máquina que deseja monitorar o desempenho coloque no browser o ip da máquina onde se encontra o cactEZ e entre com o login:admin senha:admin ... Ele pedirá para que você escolha uma senha melhor e então escolha, e entramos.
+
+   - Em "Console" escolha a opção:"Create devices for network", para criar o dispositivo --> Perto do canto direto superior tem um pequena opção:"Add" clique e insira as informações necessarias solicitadas... Percebes que é preciso ter o SNMP instalado na máquina, segue o tutorial enteriormente para configurar um SNMP.
+     
+     - EM "Description" coloque um "nome" do dispositivo que está criado (pode ser qualquer coisa) --> Em "hostname" coloque o ip da máquina que vai ser monitorada --> Em "Host Template" escolha "ucd/netSNMP Host" --> Marque "Monitor Host" --> Em "Dowmed Device Detection" selecione "Ping and SNMP" --> Em "Ping Method" selecione "ICMP Ping" --> EM "SNMP Community" selecione "public" (Neste caso veja o tipo de comunidade do SNMP da máquina) --> Em "WMI Authenication Account" selecione "None" --> OBs: Se for SNMP v3 provavelmente pedirá a senha, então coloque a que está configurada na maquina.
+     
+
+     - Se estiver tudo correto clique em "Create".
+     - Após confirmar que foi criado clique na opção "Create Graphs for this Host" que fornecerá a criação dos gráficos para serem monitorados.
+     - Na opção "Graphs" você verá os gráficos.
+     - Para aprender mais, procure estudar sobre o cactEZ.
+     - Existe também a ferramenta do Zabbix, é só ler o manual e aprender sobre ele, igualmente o cactEZ.
+
+* Memoria:
+   
+  - Para limpar o buffer faça # sync
+
+* Discos:
+ 
+  - Para ver as caracteristicas do disco faça # dumpe2fs /dev/sda1
+  - Criando o journal no disco:
+    - Por padrão os discos que não possui o ext4 não possui o journal, como no caso do ext3 que recebe como padrão o "data=ordered" que é o modo ordenado. Neste caso pode-se adicionar o journal com o seguinte comando onde "sda1" é o disco que será adicionado o journal.
+    - # tune2fs -j /dev/sda1 
+
+  - Se querer mudar o tipo:
+    - # umount /dev/sda --> # mount /dev/sda -o data=journal
+    
+  - O ext3 possui mais desempenho que o ext4, porém, se ocorrer problemas a dor de cabeça é maior por sua falta de segurando aos dados... Iremos fazer uma breve demonstração de ambos tipos de dados... com ordenado, o journal e o writeback.
+
+    - Vamos mudar primeiramente o disco para o tipo ordenado: # umount /dev/sda --> # mount /dev/sda -o data=ordered
+    - Agora vamos escrever em disco para vermos o tempo que leva: time dd if=/dev/zero of=/dev/sda/teste.dat bs=1M count=1500
+    - Após verificar o tempo etc. vamos mudar o tipo: # umount /dev/sda --> # mount /dev/sda -o data=journal
+    - Agora vamos escrever em disco para vermos o tempo que leva: time dd if=/dev/zero of=/dev/sda/teste.dat bs=1M count=1500
+    - Após verificar o tempo etc. vamos mudar o tipo: # umount /dev/sda --> # mount /dev/sda -o data=writeback
+    - Agora vamos escrever em disco para vermos o tempo que leva: time dd if=/dev/zero of=/dev/sda/teste.dat bs=1M count=1500
+    - Compara ambos e veja a diferença. E o melhor você saberá para seu sistema, mas lembre-se cada tipo tem suas vantagens e desvantagens, mas informações pesquise bastante.
+
+* Journaling 
+ 
+  - Pode-se obter um melhor desempenho colocando o journaling em outro disco.
+  
+  - Antes de qualquer coisa é preciso desmontar ambos discos, o que vai receber o journaling e o que vai conter o journaling;
+   - Então iremos supor que /dev/sda1 é um disco e /dev/sda2 é outro disco;
+     - # umount /dev/sda1 --> # umount /dev/sda2
+     - # mkfs -t ext3 -b 4896 /dev/sda1 -J device=/dev/sda2 --> neste caso estamos dizendo; formate o disco /dev/sda1 com o sistema de arquivos ext3 (no qual vai por sua opção pois pode ser ext4) e coloque o journaling no disco /dev/sda2
+     - Obs: se você tem configurações relacionada ao antigo sistema de arquivos altere, como por exemplo o arquivo /etc/fstab caso você possui alguma configuração de raid etc.
+  
+  - Formatando o disco e pondo o journaling:
+  - # mkfs -t ext3 -b 4096 -O journaling_dev /dev/sda1
+
+* Iozone
+
+ - Faça o download do iozone em: www.iozone.org/src/current/
+ - Iremos utilizar o iozone para fazer testes no ambiente como: Read, write, re-write, read, re-read, etc.
+ - O primeiro teste que iremos fazer é o # iozone -a --> ele irá fazer o teste completo medindo o desempenho.
+ 
+ - Da para por parametros na execução do comando; vamos por dentro de um arquivo os dados para tratarmos eles em uma planilha do excel, gerando gráfico, assim podemos obter uma visão geral do desempenho.
+  - Help --> # ionzone -h
+  - # iozone -a -b saida.xls --> Dessa forma estamos colocando todos os dados neste arquivo.
+  - # vamos fazer agora a coleta de informações com parametros de escrita e leitura: # iozone -a -i -O -b saida.xls
+  - Abrimos ele no excel selecionamos os dados e geramos os graficos para identificar o desempenho.
+  - Definindo o tamanho do arquivo que quer escrever no disco para fazer a análise # iozone -a -i 0 -s 1024
+  - Fazendo o teste em outro disco: # iozone -a -i 0 -f /dev/sda1/teste
+  - Fazendo o teste em dois discos ao mesmo tempo e comparando os resultados: # iozone -t 2 -i 0 -F /dev/sda1 /dev/sda2
+
+
+* Redes
+
+  - Quando mais conexão esta tendo na máquina, mais consumo de memoria e processamento vai estar exigindo da máquina;
+  - Socket é constituido por: IP + Porta + Protocolo de transporte (TCP/UDP);
+  
+  - NetPert
+
+   - É uma ferramenta para analisar desempenho de vazão na rede, para utilizá-lo é preciso que as máquinas possuiem as mesmas configurações que iremos fazer neste exato momento... Obs; faça as anotações das configurações atuai, ou seja, documente!.
+   - Faça o download em # wget ftp://ftp.netperf.org/netperf/netpef-2.6.0.tar.gz
+   - Para fazer este laboratorio é preciso de suas máquinas... Após ter baixado o arquivo em uma máquina, você pode enviar este mesmo arquivo para outras máquinas com o comando # scp netpef-2.6.0.tar.gz root@192.168.0.2:/usr/local
+   - Após ter o arquivo em ambas máquina vamos compilar, por ser do tipo tar; # tar zxf netpef-2.6.0.tar.gz --> # cd netpef-2.6.0.tar.gz --> # ./configure --help (com isso você pode verificar as ferramentas e escolher quais quer instalar) --> Neste caso iremos compilar: # ./configure --prefix=/usr/local --> # make install
+   - Na máquina 1 faça: # netserver
+   - Na máquina 2 faça: # netperf -H 192.168.0.2 (onde este ip é da máquina no qual foi executada o comando # netserver).
+   - Com estes podemos verificar a vasão da rede. Anote os resultados para comparar com o tuning que iremos fazer agora.
+   
+   - Neste momento iremos aumentar o buffer do protocolo tcp/ip para os dados serem enviados rápidamente.
+   - Nas duas máquinas será preciso fazer essas alterações:
+    - Primeira é preciso alterar algumas configurações na parte de redes, vamos usar sysctl para nos ajudar;
+     - # sysctl -w net.core.wmem_max=8388608
+     - # sysctl -w net.core.rmem_max=8388608
+     - # sysctl -w net.ipv4.tcp_rmem"4096 87380 8388608"
+     - # sysctl -w net.ipv4.tcp_wmem"4096 87380 8388608"
+     - Verifique se tudo foi efetuado novamente # sysctl -a |grep ipv4.tcp
+
+   - Ok, agora é realizar o testes novamente:
+     - Na máquina 1 faça: # netserver
+     - Na máquina 2 faça: # netperf -H 192.168.0.2
+
+   
+  - NetPIPE
+   - O NetPIPE ajudará a medie o desempenho de banda e latencia da rede.
+   - Faça o download em # wget http://bitspjoule.org/netpipe/code/NetPIPE-3.7.2.tar.gz
+   - # tar zxf NetPIPE-3.7.2.tar.gz --> # cd NetPIPE-3.7.2 --> # make tcp
+   - Será preciso duas máquinas, então faça os mesmo procedimentos como anteriormente.
+   - Após isso uma das máquinas será levantada o NetPIPE em quanto a outra ira transferir os pacotes.
+   - Na máquina 1 levanta o NetPIPE # ./NPtcp
+   - Na máquina 2 envia os pacotes # ./NPtcp -h 192.168.0.2
+   - Ele começará a transmitir os pacotes, com os resultados pode-se montar gráficos para medir o desempenho, é só copiar os resultados gerados (Mbps e usec). Provavelmente terá um problema quanto a gerar o gráfico, pois só será possivel se for com virgula, e na análise estará com ponto, bom, para isso existe um macete... Seleciona a primeira coluna, após selecionar toda a coluna abre as opções e clica em "Localizar e Substituir" na caixa coloque primeiro (.) e na segunda (,) , após substituir é preciso formatar para que os dados sejam visiveis no gráfico. Ainda selecionado clique na aba "Formatar" --> "Células" --> "Numero", existe umas opções abaixo; na caixa "Casas decimais" coloque 3 e na "Zeros à esquerda" coloque 1.
+   - Após isso selecione as duas colunas e gere o gráfico da forma que achar melhor.
+   
+
+* NFS
+
+/** Onde ensina a criar o Raid tem uma explicação mais atual sobre configurar um NFS perto do fim do tutorial de RAID **/
+
+ - NFS (acrônimo para Network File System) é um sistema de arquivos distribuídos a fim de compartilhar arquivos e diretórios entre computadores conectados em rede, formando assim um diretório virtual.
+ - Configurando o diretorio; 
+ - Criaremos primeiramente o diretorio # mkdir /Dados
+ - Depois vamos até o arquivo # vim /etc/exports --> e entro colocaremos o seguinte: /Dados 192.168.0.0/24(rw.no_root_squash) --> Salva e sai.
+ - Depois ativa e restarta alguns serviços:
+  - # service nfs start
+  - # service nfslock restart
+  - # /etc/init.d/portreserve restart
+  - # service rpcbind restart
+  
+ - Agora vai no computador cliente, onde será montado o diretorio, ativa o nfs, e faça # mount -t nfs 192.168.0.175:/Dados  /Dados
+ - Obs; as vezes, provavelemente poderá ocorrer "mount.nfs: Connection timed out", neste caso pode ser o firewall bloqueando.
+ - Um dos problemas do NFS é que ele gera muito gargalos na rede.
+ - Se começar aparecer muitos problemas de gargalos referente as conexões do NFS, podemos aumentar o numero de processos do NFS para ter um desempenho melhor... Para isso abra o arquivo # vim /etc/sysconfig/nfs --> encontra a linha onde se encontra a palavra "RPCNFSDCOUNT=8", habilite tirando o # e altere a numeração e coloque por exemplo 16 ficará "RPCNFSDCOUNT=16". Com isso ajuda muito no desempenho.
+ - # service nfs restart
+
+ - Um boa técnica é impedir que o NFS fique o tempo todo "carimbando" os arquivos, como data de modificação, escrita, leitura etc, pois isso pode gerar gargalos, para isso podemos tirá-lo com o seguinte comando no # umount /Dados --> # mount -o noatime -t nfs 192.168.0.175:/Dados  /Dados
+ - Podemos por isso no arquivo nfstab para que seja carregada essas configurações quando iniciar o sistema e quando montar novamente;
+  - # vim /etc/fstab
+  - Dentro coloque --> 192.168.0.175:/Dados         /Dados              nfs             noatime.default       0 0
+  - Obs; onde 192.168.0.175 é o servidor NFS.
+  - Salva e sai.
+  
+ - Podemos aumentar os blocos de dados para enviar rápidamente os arquivos pela rede;
+  - # umount /Dados
+  - # mount -a noatime,wsize=65536,rsize=65536 -t nfs 192.168.0.175:/Dados  /Dados
+  - Podemos por essas informações também dentro fstab;
+  - --> 192.168.0.175:/Dados         /Dados              nfs             noatime,wsize=65536,rsize=65536,default       0 0
+  - Salva e sai.
+ 
+ - Agora vamos mudar alguma configurações de rede para melhor o desempenho do NFS, vamos alterar a quantidade do buffer na rede, colocando em seu valor máximo:
+  - É preciso dazer isso no servidor e no cliente!
+  - # sysctl -w net.core.rmwm_default=262144
+  - # sysctl -w net.core.rmem_max=262144
+  - # sysctl -w net.ipv4.ipfrag_high_thresh=524288
+  - # sysctl -w net.ipv4.ipfrag_low_thresh = 393216
+
+ - Para testar o desepenho faça # dd if=/dev/zero of=/Dados/teste.dat bs=1024 count=1024 --> onde bs é quantidade em mega e count a quantidade de tempo.
+
+  - Existem outros dois métodos que mexem com o desempenho do NFS o Async e Sync ... O Async armazena os dados na memoria e descarrega no disco depois e o Sync descarrega da memoria para o disco assim que termina o processo, claro que o Async tem melhor desempenho mas se caso ocorrar uma queda de energia durante o processo, já era, perde-se os dados e corrompe também. Então no exemplo que iremos fazer agora utilizaremos o async;
+  - Isso no servidor;
+  - # vim /etc/fstab
+  - /dados                 192.168.0.0/24(rw,no_root_squash,async)
+  - Salva e sai.
+  - service nfs restart.
+
+ - Os sistemas de disco e o tipo de disco afeta o desempenho, assim como a rede também.
+
+
+* Desempenho em códigos de programação
+
+  - Muitos loop's (for, while, foreach), if, if else geram gargalos na aplicação.
+  - Gambiarras geram gargalos.
+  - O tipo de compilador também afeta o desempenho do software.
+  - Quanto menor for o código desenvolvido, melhor o desempenho dele.
+
+* Estudos:
+ 
+  - iSCSI.
+  - Estudar sobre Filesystem.
+  - shernel bound.
+  - CPU bound, scheduler.
+  - FAB chernnel
+
+
+* iSCSI
+
+ - IOPS: Io Per Second -> Como calcular IOPS.
+
+   - R (Tempo total de serviço do disco) = E (Tempo de busca aleatório) + L (Latência rotacional do disco (rotação por minutos)) + X (Taxa de tranferência interna do disco)
+
+Supomos:
+
+ 	E = 5 ms
+ 	L = 0,5 x RPM
+ 	X = 40 MB/s
+ 
+	 Block size = 4k
+
+ 	IOPS = 1 / (sobre)R
+ 
+ 	SAS = 15000 RPM
+
+         5 + (0,5/15000) + 4k / 40 MB/s = 7,1
+	
+ 	IOPS = 1/7,1 = 140,8 IOPS
+
+ 	Supondo que um storage com Raid 5 precise de 600 IOPS:
+
+ 	RAID 5 6 Discos = 5 discos = 5x140 = 700 IOPS
+
+ - Primeiro ponto, é importante uma boa placa de red para o iSCSI pois a maioria dos gargalos é na rede.
+
+ - Segundo é preciso de um boa largura de banda, evita gargalos.
+
+ - E terceiro criar uma rede lan (uma rede separada (isolada)) para não haver interferência, para os targets (servidores) e initiators (clientes).
+
+ - Se utilizar essas 3 dicas dadas, evitará sérios problemas futuramente.
